@@ -1,0 +1,5 @@
+---
+# defaults file for cm_config
+cm_port: 7180
+cm_user: "admin"
+cm_api_version: 13
