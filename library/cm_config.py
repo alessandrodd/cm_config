@@ -133,7 +133,7 @@ def main():
         "cm_host": {"required": True, "type": "str"},
         "cm_port": {"default": 7180, "type": "int"},
         "cm_user": {"default": "admin", "type": "str"},
-        "cm_pass": {"required": True, "type": "str"},
+        "cm_pass": {"required": True, "type": "str", no_log=True},
         "cm_api_version": {"default": 13, "type": "int"},
         "service_type": {"required": True, "type": "str"},
         "role_type": {"type": "str"},
