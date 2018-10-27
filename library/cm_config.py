@@ -49,7 +49,7 @@ def get_parameter_value(config, parameter):
     return None
 
 
-def change_parameter_value(cluster, service, role, config, parameter, value):
+def change_parameter_value(None, cm, cluster, service, role, config, parameter, value):
     if parameter not in config.keys():
         return
     cur_value = get_parameter_value(config, parameter)
@@ -63,8 +63,10 @@ def change_parameter_value(cluster, service, role, config, parameter, value):
             resp = config.update_config(update)
         elif service:
             resp = service.update_config(update)
-        else:
+        elif cluster:
             resp = cluster.update_config(update)
+        else:
+            resp = cm.update_config(update)
         if isinstance(resp, tuple):
             resp = resp[0]
         if str(resp[parameter]).lower() == str(value).lower():
@@ -88,16 +90,16 @@ def check_cloudera_settings(api, cloudera_settings):
                 config = get_config_fixed(role)
                 for setting in cloudera_settings:
                     if (setting.get("service_type", None) == service.type or setting.get("service_type", None) == "*") and (setting.get("role_type", None) == role.type or setting.get("role_type", None) == "*"):
-                        update = change_parameter_value(
-                            cluster, service, role, config, setting.get("parameter", None), setting.get("value", None))
+                        update = change_parameter_value(None,
+                                                        cluster, service, role, config, setting.get("parameter", None), setting.get("value", None))
                         if update:
                             updates.append(update)
             # Service-wide configuration for CDH service
             config = get_config_fixed(service)
             for setting in cloudera_settings:
                 if (setting.get("service_type", None) == service.type or setting.get("service_type", None) == "*") and setting.get("role_type", None) is None:
-                    update = change_parameter_value(
-                        cluster, service, None, config, setting.get("parameter", None), setting.get("value", None))
+                    update = change_parameter_value(None,
+                                                    cluster, service, None, config, setting.get("parameter", None), setting.get("value", None))
                     if update:
                         updates.append(update)
     cm = api.get_cloudera_manager()
@@ -108,20 +110,25 @@ def check_cloudera_settings(api, cloudera_settings):
         config = get_config_fixed(role)
         for setting in cloudera_settings:
             if (setting.get("service_type", None) == "MGMT" or setting.get("service_type", None) == "*") and (setting.get("role_type", None) == role.type or setting.get("role_type", None) == "*"):
-                update = change_parameter_value(
-                    None, service, role, config, setting.get("parameter", None), setting.get("value", None))
+                update = change_parameter_value(None,
+                                                None, service, role, config, setting.get("parameter", None), setting.get("value", None))
                 if update:
                     updates.append(update)
     # Service-wide configuration for Cloudera Management Services
     for setting in cloudera_settings:
         if (setting.get("service_type", None) == "MGMT" or setting.get("service_type", None) == "*") and setting.get("role_type", None) is None:
-            update = change_parameter_value(
-                None, service, None, config, setting.get("parameter", None), setting.get("value", None))
+            update = change_parameter_value(None,
+                                            None, service, None, config, setting.get("parameter", None), setting.get("value", None))
+            if update:
+                updates.append(update)
+        if (setting.get("service_type", None) == "CM" or setting.get("service_type", None) == "*") and setting.get("role_type", None) is None:
+            update = change_parameter_value(cm, None, None, None, config, setting.get(
+                "parameter", None), setting.get("value", None))
             if update:
                 updates.append(update)
         elif setting.get("service_type", None) is None and setting.get("role_type", None) is None:
-            update = change_parameter_value(
-                None, None, None, config, setting.get("parameter", None), setting.get("value", None))
+            update = change_parameter_value(None,
+                                            None, None, None, config, setting.get("parameter", None), setting.get("value", None))
             if update:
                 updates.append(update)
     return updates
