@@ -119,6 +119,11 @@ def check_cloudera_settings(api, cloudera_settings):
                 None, service, None, config, setting.get("parameter", None), setting.get("value", None))
             if update:
                 updates.append(update)
+        elif setting.get("service_type", None) is None and setting.get("role_type", None) is None:
+            update = change_parameter_value(
+                None, None, None, config, setting.get("parameter", None), setting.get("value", None))
+            if update:
+                updates.append(update)
     return updates
 
 
@@ -133,7 +138,7 @@ def main():
         "cm_host": {"required": True, "type": "str"},
         "cm_port": {"default": 7180, "type": "int"},
         "cm_user": {"default": "admin", "type": "str"},
-        "cm_pass": {"required": True, "type": "str", "no_log" : True},
+        "cm_pass": {"required": True, "type": "str", "no_log": True},
         "cm_api_version": {"default": 13, "type": "int"},
         "service_type": {"required": True, "type": "str"},
         "role_type": {"type": "str"},
